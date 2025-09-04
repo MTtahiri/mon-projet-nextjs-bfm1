@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 
-// Solution pour Node.js 18+ - Polyfills globaux
+// Polyfills pour Node.js 18+
 if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
   if (typeof process.env.OPENSSL_CONF === 'undefined') {
     process.env.OPENSSL_CONF = '/dev/null';
@@ -23,22 +23,18 @@ interface CandidateData {
   cvUrl: string;
 }
 
-// Configuration simplifiée et robuste
+// Configuration d'authentification Google
 function getAuth() {
   try {
     const privateKey = process.env.GOOGLE_PRIVATE_KEY;
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-    
+
     if (!privateKey || !clientEmail) {
       console.error('❌ Variables Google manquantes');
       return null;
     }
 
-    // Nettoyage de la clé privée
-    const cleanedPrivateKey = privateKey
-      .replace(/\\n/g, '\n')
-      .replace(/"/g, '')
-      .trim();
+    const cleanedPrivateKey = privateKey.replace(/\\n/g, '\n').replace(/"/g, '').trim();
 
     return new google.auth.GoogleAuth({
       credentials: {
@@ -53,14 +49,13 @@ function getAuth() {
   }
 }
 
-// Initialisation
 const auth = getAuth();
 const sheets = auth ? google.sheets({ version: 'v4', auth }) : null;
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_ID;
 const SHEET_NAME = "Master_KPI_Candidats";
 
-// Fonction pour extraire le nom et prénom
+// Extraction nom et prénom
 function extractNames(fullName: string): { nom: string; prenom: string } {
   const parts = fullName.split(' ');
   const nom = parts.pop() || '';
@@ -68,13 +63,13 @@ function extractNames(fullName: string): { nom: string; prenom: string } {
   return { nom, prenom };
 }
 
-// Fonction pour générer un hash anti-doublon
+// Génération hash anti-doublon
 function generateHash(name: string, email: string, phone: string, experience: string): string {
   const str = `${name}${email}${phone}${experience}`.toLowerCase().replace(/\s+/g, '');
   return Buffer.from(str).toString('base64').slice(0, 20);
 }
 
-// Fonction pour ajouter un candidat à Google Sheets
+// Ajout candidat dans Google Sheets
 export async function addCandidateToSheet(candidateData: CandidateData): Promise<boolean> {
   if (!sheets || !SPREADSHEET_ID) {
     console.log('📋 Mode simulation Google Sheets');
@@ -91,7 +86,6 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
       candidateData.experience
     );
 
-    // Sécurisation de la transformation skills -> tableau trimé
     const skillsArray = candidateData.skills ? candidateData.skills.split(',').map(s => s.trim()) : [];
 
     const rowData = [
@@ -105,8 +99,6 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
       candidateData.experience,
       candidateData.location,
       candidateData.education,
-      // Re-transforme en texte csv pour insertion claire dans Google Sheets,
-      // ou laisse sous forme de tableau selon ce que tu utilises côté sheet.
       skillsArray.join(', '),
       candidateData.sector,
       candidateData.level,

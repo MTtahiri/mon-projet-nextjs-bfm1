@@ -226,3 +226,18 @@ export default function UploadModalExample() {
     </>
   );
 }
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+NEXTAUTH_SECRET="1126d388d797147b0e16215ab7f5d0f36fa182ba5e09a57bc9bd6ee209385c10"
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+git remote add origin https://github.com/MTtahiri/mon-projet-nextjs-bfm1.git
+
+git remote add origin git@github.com/MTtahiri/mon-projet-nextjs-bfm1.git
+

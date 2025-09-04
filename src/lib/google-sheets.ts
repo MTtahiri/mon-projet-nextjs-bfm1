@@ -7,6 +7,22 @@ if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
   }
 }
 
+// Interface pour les données candidat
+interface CandidateData {
+  name: string;
+  email: string;
+  phone: string;
+  experience: string;
+  position: string;
+  location: string;
+  education: string;
+  skills: string;
+  sector: string;
+  level: string;
+  dailyRate: number;
+  cvUrl: string;
+}
+
 // Configuration simplifiée et robuste
 function getAuth() {
   try {
@@ -44,8 +60,22 @@ const sheets = auth ? google.sheets({ version: 'v4', auth }) : null;
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_ID;
 const SHEET_NAME = "Master_KPI_Candidats";
 
-// Fonction pour ajouter un candidat
-export async function addCandidateToSheet(candidateData: any): Promise<boolean> {
+// Fonction pour extraire le nom et prénom
+function extractNames(fullName: string): { nom: string; prenom: string } {
+  const parts = fullName.split(' ');
+  const nom = parts.pop() || '';
+  const prenom = parts.join(' ') || fullName;
+  return { nom, prenom };
+}
+
+// Fonction pour générer un hash anti-doublon
+function generateHash(name: string, email: string, phone: string, experience: string): string {
+  const str = `${name}${email}${phone}${experience}`.toLowerCase().replace(/\s+/g, '');
+  return Buffer.from(str).toString('base64').slice(0, 20);
+}
+
+// Fonction pour ajouter un candidat à Google Sheets
+export async function addCandidateToSheet(candidateData: CandidateData): Promise<boolean> {
   if (!sheets || !SPREADSHEET_ID) {
     console.log('📋 Mode simulation Google Sheets');
     console.log('Données:', candidateData);
@@ -54,7 +84,12 @@ export async function addCandidateToSheet(candidateData: any): Promise<boolean> 
 
   try {
     const { nom, prenom } = extractNames(candidateData.name);
-    const hashAntiDoublon = generateHash(candidateData.name, candidateData.email, candidateData.phone, candidateData.experience);
+    const hashAntiDoublon = generateHash(
+      candidateData.name,
+      candidateData.email,
+      candidateData.phone,
+      candidateData.experience
+    );
     
     const rowData = [
       `CAND-${Date.now().toString().slice(-6)}`,
@@ -86,22 +121,12 @@ export async function addCandidateToSheet(candidateData: any): Promise<boolean> 
     console.log('✅ Candidat ajouté à Google Sheets');
     return true;
 
-  } catch (error: any) {
-    console.error('❌ Erreur Google Sheets:', error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('❌ Erreur Google Sheets:', error.message);
+    } else {
+      console.error('❌ Erreur Google Sheets inconnue:', error);
+    }
     return false;
   }
-}
-
-// Fonctions utilitaires
-function extractNames(fullName: string) {
-  const parts = fullName.split(' ');
-  return {
-    nom: parts.pop() || '',
-    prenom: parts.join(' ') || fullName
-  };
-}
-
-function generateHash(name: string, email: string, phone: string, experience: string) {
-  const str = `${name}${email}${phone}${experience}`.toLowerCase().replace(/\s+/g, '');
-  return Buffer.from(str).toString('base64').slice(0, 20);
 }

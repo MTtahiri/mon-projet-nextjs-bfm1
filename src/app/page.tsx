@@ -71,7 +71,10 @@ export default function Home() {
     const body = `Bonjour S.M. Consulting,\n\nJe souhaite prendre rendez-vous concernant le consultant ${consultantName}.\n\nCordialement,`;
     
     // Ouverture email
-    window.open(`mailto:contact@rh-prospects.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+    window.open(
+      `mailto:contact@rh-prospects.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, 
+      '_blank'
+    );
     
     // Alternative téléphone
     // window.open('tel:+33619257588', '_blank');
@@ -94,7 +97,8 @@ export default function Home() {
             🌟 S.M. Consulting
           </h1>
           <p className="text-xl md:text-2xl mb-8 max-w-4xl mx-auto">
-            Mettons en relation les talents internationaux d'exception avec les entreprises en recherche d'expertise pointue.
+            Mettons en relation les talents internationaux d&apos;exception avec
+            les entreprises en recherche d&apos;expertise pointue.
           </p>
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto">
             <div className="grid md:grid-cols-3 gap-6 text-center">
@@ -117,7 +121,10 @@ export default function Home() {
         {/* Consultants Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {consultants.map((consultant) => (
-            <div key={consultant.id} className="bg-white rounded-2xl shadow-2xl overflow-hidden transform hover:scale-105 transition-all duration-300">
+            <div 
+              key={consultant.id} 
+              className="bg-white rounded-2xl shadow-2xl overflow-hidden transform hover:scale-105 transition-all duration-300"
+            >
               <div className="p-6">
                 <div className="text-center mb-6">
                   {/* Avatar avec initiales */}
@@ -135,7 +142,10 @@ export default function Home() {
                     <h4 className="font-semibold text-gray-800 mb-2">🎯 Expertises :</h4>
                     <div className="flex flex-wrap gap-1">
                       {consultant.competences.slice(0, 4).map((comp, index) => (
-                        <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                        <span 
+                          key={index} 
+                          className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
+                        >
                           {comp}
                         </span>
                       ))}

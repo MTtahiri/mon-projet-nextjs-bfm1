@@ -90,7 +90,10 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
       candidateData.phone,
       candidateData.experience
     );
-    
+
+    // Sécurisation de la transformation skills -> tableau trimé
+    const skillsArray = candidateData.skills ? candidateData.skills.split(',').map(s => s.trim()) : [];
+
     const rowData = [
       `CAND-${Date.now().toString().slice(-6)}`,
       candidateData.cvUrl,
@@ -102,7 +105,9 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
       candidateData.experience,
       candidateData.location,
       candidateData.education,
-      candidateData.skills,
+      // Re-transforme en texte csv pour insertion claire dans Google Sheets,
+      // ou laisse sous forme de tableau selon ce que tu utilises côté sheet.
+      skillsArray.join(', '),
       candidateData.sector,
       candidateData.level,
       "Nouveau",

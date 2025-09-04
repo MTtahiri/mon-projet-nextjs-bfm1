@@ -5,18 +5,20 @@ import { addCandidateToSheet } from '@/lib/google-sheets';
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
+    
+    // Récupération sécurisée des données avec valeurs par défaut
     const file = formData.get('cv') as File;
-    const name = formData.get('name') as string;
-    const email = formData.get('email') as string;
-    const phone = formData.get('phone') as string;
-    const experience = formData.get('experience') as string;
-    const position = formData.get('position') as string;
-    const location = formData.get('location') as string;
-    const education = formData.get('education') as string;
-    const skills = formData.get('skills') as string;
-    const sector = formData.get('sector') as string;
-    const level = formData.get('level') as string;
-    const dailyRate = formData.get('dailyRate') as string;
+    const name = formData.get('name') as string || '';
+    const email = formData.get('email') as string || '';
+    const phone = formData.get('phone') as string || '';
+    const experience = formData.get('experience') as string || '';
+    const position = formData.get('position') as string || '';
+    const location = formData.get('location') as string || '';
+    const education = formData.get('education') as string || '';
+    const skills = formData.get('skills') as string || '';
+    const sector = formData.get('sector') as string || '';
+    const level = formData.get('level') as string || '';
+    const dailyRate = formData.get('dailyRate') as string || '';
 
     // Validation des champs requis
     if (!file || !name || !email || !dailyRate) {
@@ -40,8 +42,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validation du TJM
+    const dailyRateNumber = parseInt(dailyRate);
+    if (isNaN(dailyRateNumber) || dailyRateNumber < 100 || dailyRateNumber > 2000) {
+      return NextResponse.json(
+        { error: 'Le TJM doit être un nombre entre 100 et 2000 €' },
+        { status: 400 }
+      );
+    }
+
     // Upload du CV vers Vercel Blob
     const fileName = `cv-${name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.pdf`;
+    
     const blob = await put(fileName, file, {
       access: 'public',
       contentType: 'application/pdf',
@@ -49,21 +61,24 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ CV uploadé vers Vercel Blob:', blob.url);
 
-    // Ajout à Google Sheets
-    const success = await addCandidateToSheet({
-      name,
-      email,
+    // Préparation sécurisée des données pour Google Sheets
+    const candidateData = {
+      name: name || '',
+      email: email || '',
       phone: phone || '',
       experience: experience || '',
       position: position || '',
       location: location || '',
       education: education || '',
-      skills: skills || '',
+      skills: skills || '', // On garde la chaîne originale
       sector: sector || '',
       level: level || '',
-      dailyRate: parseInt(dailyRate),
+      dailyRate: dailyRateNumber,
       cvUrl: blob.url
-    });
+    };
+
+    // Ajout à Google Sheets
+    const success = await addCandidateToSheet(candidateData);
 
     if (!success) {
       return NextResponse.json(
@@ -77,10 +92,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'CV et données enregistrés avec succès dans Google Sheets!',
+      message: 'CV et données enregistrés avec succès!',
       candidateId: candidateId,
       cvUrl: blob.url,
-      dailyRate: parseInt(dailyRate)
+      dailyRate: dailyRateNumber
     });
 
   } catch (error) {

@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { safeSplit } from '@/utils/stringUtils';
 
 // Interface pour typer les consultants
 interface Consultant {
@@ -33,7 +34,7 @@ export default function SMConsulting() {
     },
     {
       id: 2,
-      name: "Pierre D.", 
+      name: "Pierre D.",
       experience: "12 ans",
       competences: ["Digital", "Change Management", "Innovation"],
       secteurs: ["Banking", "Insurance", "Retail"],
@@ -43,7 +44,7 @@ export default function SMConsulting() {
     {
       id: 3,
       name: "Fatima K.",
-      experience: "6 ans", 
+      experience: "6 ans",
       competences: ["SEO/SEA", "Social Media", "Analytics"],
       secteurs: ["E-commerce", "Media", "Startup"],
       fileId: null,
@@ -80,7 +81,7 @@ export default function SMConsulting() {
   // Envoi email contact
   const handleSendContact = async (formData: FormData) => {
     if (!selectedConsultant) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch('/api/contact', {
@@ -166,7 +167,8 @@ export default function SMConsulting() {
 
   // Générer initiales
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    // ici sécurisons le split
+    return safeSplit(name, ' ').map(n => n[0]).join('').toUpperCase();
   };
 
   return (
@@ -174,9 +176,7 @@ export default function SMConsulting() {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center text-white mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            🌟 S.M. Consulting
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">🌟 S.M. Consulting</h1>
           <p className="text-xl md:text-2xl mb-8 max-w-4xl mx-auto">
             Mettons en relation les talents internationaux d&apos;exception avec les entreprises en recherche d&apos;expertise pointue.
           </p>
@@ -239,15 +239,15 @@ export default function SMConsulting() {
 
                   {/* Actions */}
                   <div className="space-y-2 pt-4 border-t">
-                    <button 
+                    <button
                       onClick={() => handleContactConsultant(consultant)}
                       className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
                     >
-                      📞 Contacter {consultant.name.split(' ')[0]}
+                      📞 Contacter {safeSplit(consultant.name, ' ')[0]}
                     </button>
                     
                     {consultant.fileId && (
-                      <button 
+                      <button
                         onClick={() => handleAnonymizeCV(consultant)}
                         disabled={loading}
                         className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400"
@@ -262,8 +262,9 @@ export default function SMConsulting() {
           ))}
         </div>
 
+        {/* Button show modal */}
         <div className="text-center">
-          <button 
+          <button
             onClick={() => setShowUploadModal(true)}
             className="bg-white text-purple-600 px-12 py-4 rounded-2xl font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300"
           >
@@ -279,7 +280,7 @@ export default function SMConsulting() {
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Rejoignez S.M. Consulting</h2>
-                <button 
+                <button
                   onClick={() => setShowUploadModal(false)}
                   className="text-2xl text-gray-500 hover:text-gray-700"
                 >
@@ -287,17 +288,17 @@ export default function SMConsulting() {
                 </button>
               </div>
 
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target as HTMLFormElement);
-                handleUploadCV(formData);
-              }}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  handleUploadCV(formData);
+                }}
+              >
                 <div className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nom complet *
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet *</label>
                       <input
                         type="text"
                         name="name"
@@ -306,9 +307,7 @@ export default function SMConsulting() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email *
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                       <input
                         type="email"
                         name="email"
@@ -320,9 +319,7 @@ export default function SMConsulting() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Téléphone
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                       <input
                         type="tel"
                         name="phone"
@@ -330,9 +327,7 @@ export default function SMConsulting() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Années d&apos;expérience
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Années d&apos;expérience</label>
                       <input
                         type="text"
                         name="experience"
@@ -343,9 +338,7 @@ export default function SMConsulting() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Compétences clés
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Compétences clés</label>
                     <input
                       type="text"
                       name="competences"
@@ -355,9 +348,7 @@ export default function SMConsulting() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Secteurs d&apos;intervention
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Secteurs d&apos;intervention</label>
                     <input
                       type="text"
                       name="secteurs"
@@ -367,9 +358,7 @@ export default function SMConsulting() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      CV (PDF uniquement) *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">CV (PDF uniquement) *</label>
                     <input
                       type="file"
                       name="cv"
@@ -409,23 +398,23 @@ export default function SMConsulting() {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold">Contacter {selectedConsultant.name}</h3>
-                <button 
+                <button
                   onClick={() => setShowContactModal(false)}
                   className="text-2xl text-gray-500 hover:text-gray-700"
                 >
                   ×
                 </button>
               </div>
-              
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                handleSendContact(new FormData(e.target as HTMLFormElement));
-              }}>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendContact(new FormData(e.target as HTMLFormElement));
+                }}
+              >
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Votre nom *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Votre nom *</label>
                     <input
                       type="text"
                       name="clientName"
@@ -433,11 +422,9 @@ export default function SMConsulting() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                     <input
                       type="email"
                       name="clientEmail"
@@ -447,20 +434,16 @@ export default function SMConsulting() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Entreprise
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Entreprise</label>
                     <input
                       type="text"
                       name="company"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Message
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
                     <textarea
                       name="message"
                       rows={3}
@@ -469,7 +452,7 @@ export default function SMConsulting() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3 mt-6">
                   <button
                     type="button"

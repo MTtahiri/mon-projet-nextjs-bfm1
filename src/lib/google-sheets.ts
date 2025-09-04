@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { safeSplit } from '@/utils/stringUtils';
 
 // Polyfills pour Node.js 18+
 if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
@@ -86,7 +87,8 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
       candidateData.experience
     );
 
-    const skillsArray = candidateData.skills ? candidateData.skills.split(',').map(s => s.trim()) : [];
+    // Utilisation sécurisée de safeSplit pour skills
+    const skillsArray = safeSplit(candidateData.skills);
 
     const rowData = [
       `CAND-${Date.now().toString().slice(-6)}`,

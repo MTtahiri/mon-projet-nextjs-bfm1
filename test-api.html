@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Contact</title>
+</head>
+<body>
+    <h1>Test API Contact</h1>
+    <button id="testBtn">Tester l'API</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Envoi en cours...';
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        email: 'test@example.com',
+                        company: 'Test Company',
+                        type: 'Entreprise',
+                        message: 'Ceci est un test'
+                    })
+                });
+
+                const data = await response.json();
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                if (!response.ok) {
+                    resultDiv.style.color = 'red';
+                } else {
+                    resultDiv.style.color = 'green';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Erreur: ${error.message}`;
+                resultDiv.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>

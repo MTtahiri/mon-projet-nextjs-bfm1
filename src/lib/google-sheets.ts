@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { google, sheets_v4 } from 'googleapis';
 
 // Solution pour Node.js 18+ - Polyfills globaux
 if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
@@ -23,8 +23,15 @@ interface CandidateData {
   cvUrl: string;
 }
 
+// Interface pour la réponse des valeurs de la feuille
+interface SheetValuesResponse {
+  range?: string | null;
+  majorDimension?: string | null;
+  values?: string[][] | null;
+}
+
 // Configuration simplifiée et robuste
-function getAuth() {
+function getAuth(): google.auth.GoogleAuth | null {
   try {
     const privateKey = process.env.GOOGLE_PRIVATE_KEY;
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
@@ -60,8 +67,14 @@ const sheets = auth ? google.sheets({ version: 'v4', auth }) : null;
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_ID;
 const SHEET_NAME = "Master_KPI_Candidats";
 
+// Interface pour les noms extraits
+interface ExtractedNames {
+  nom: string;
+  prenom: string;
+}
+
 // Fonction pour extraire le nom et prénom - SÉCURISÉE
-function extractNames(fullName: string): { nom: string; prenom: string } {
+function extractNames(fullName: string): ExtractedNames {
   if (!fullName) return { nom: '', prenom: '' };
   
   const parts = (fullName || '').split(' ');
@@ -140,8 +153,13 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
     console.log('✅ Candidat ajouté à Google Sheets');
     return true;
 
-  } catch (error: any) {
-    console.error('❌ Erreur Google Sheets:', error.message);
+  } catch (error: unknown) {
+    // Gestion appropriée des erreurs avec vérification de type
+    if (error instanceof Error) {
+      console.error('❌ Erreur Google Sheets:', error.message);
+    } else {
+      console.error('❌ Erreur Google Sheets inconnue:', error);
+    }
     return false;
   }
 }

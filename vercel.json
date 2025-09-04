@@ -1,1 +1,19 @@
-{"version": 2, "name": "mon-projet-nextjs-bfm1", "alias": ["saveursmaghrebines.com", "www.saveursmaghrebines.com"]}
+{
+  "version": 3,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "alias": [
+    "saveursmaghrebines.com",
+    "www.saveursmaghrebines.com"
+  ]
+}

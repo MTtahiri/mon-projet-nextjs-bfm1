@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/core": "^0.34.2",
     "@google-cloud/storage": "^7.17.0",
     "@vercel/blob": "^1.1.1",
     "formidable": "^3.5.4",
@@ -16,6 +17,7 @@
     "lucide-react": "^0.542.0",
     "multer": "^2.0.2",
     "next": "15.5.2",
+    "next-auth": "^4.24.11",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "resend": "^6.0.2"

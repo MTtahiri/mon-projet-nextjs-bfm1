@@ -1,4 +1,4 @@
-import { google, sheets_v4 } from 'googleapis';
+import { google } from 'googleapis';
 
 // Solution pour Node.js 18+ - Polyfills globaux
 if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
@@ -23,15 +23,11 @@ interface CandidateData {
   cvUrl: string;
 }
 
-// Interface pour la réponse des valeurs de la feuille
-interface SheetValuesResponse {
-  range?: string | null;
-  majorDimension?: string | null;
-  values?: string[][] | null;
-}
+// Type pour l'authentification Google
+type GoogleAuthType = InstanceType<typeof google.auth.GoogleAuth>;
 
 // Configuration simplifiée et robuste
-function getAuth(): google.auth.GoogleAuth | null {
+function getAuth(): GoogleAuthType | null {
   try {
     const privateKey = process.env.GOOGLE_PRIVATE_KEY;
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
@@ -73,26 +69,39 @@ interface ExtractedNames {
   prenom: string;
 }
 
-// Fonction pour extraire le nom et prénom - SÉCURISÉE
-function extractNames(fullName: string): ExtractedNames {
-  if (!fullName) return { nom: '', prenom: '' };
+// Fonction pour extraire le nom et prénom - ULTRA SÉCURISÉE
+function extractNames(fullName: unknown): ExtractedNames {
+  if (typeof fullName !== 'string' || !fullName) {
+    return { nom: '', prenom: '' };
+  }
   
-  const parts = (fullName || '').split(' ');
-  const nom = parts.pop() || '';
-  const prenom = parts.join(' ') || fullName;
-  return { nom, prenom };
+  try {
+    const parts = fullName.split(' ');
+    const nom = parts.pop() || '';
+    const prenom = parts.join(' ') || fullName;
+    return { nom, prenom };
+  } catch (error) {
+    console.error('Erreur dans extractNames:', error);
+    return { nom: '', prenom: String(fullName) };
+  }
 }
 
 // Fonction pour générer un hash anti-doublon - SÉCURISÉE
 function generateHash(name: string, email: string, phone: string, experience: string): string {
   // Protection contre les valeurs undefined
-  const safeName = name || '';
-  const safeEmail = email || '';
-  const safePhone = phone || '';
-  const safeExperience = experience || '';
+  const safeName = (name || '').toString();
+  const safeEmail = (email || '').toString();
+  const safePhone = (phone || '').toString();
+  const safeExperience = (experience || '').toString();
   
-  const str = `${safeName}${safeEmail}${safePhone}${safeExperience}`.toLowerCase().replace(/\s+/g, '');
-  return Buffer.from(str).toString('base64').slice(0, 20);
+  const str = `${safeName}${safeEmail}${safePhone}${safeExperience}`;
+  
+  // Vérification supplémentaire pour s'assurer que str est une string
+  if (typeof str !== 'string') {
+    return '';
+  }
+  
+  return Buffer.from(str.toLowerCase().replace(/\s+/g, '')).toString('base64').slice(0, 20);
 }
 
 // Fonction pour ajouter un candidat à Google Sheets
@@ -104,20 +113,20 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
   }
 
   try {
-    // Protection contre les données manquantes
+    // Protection contre les données manquantes - conversion explicite en string
     const safeData = {
-      name: candidateData.name || '',
-      email: candidateData.email || '',
-      phone: candidateData.phone || '',
-      experience: candidateData.experience || '',
-      position: candidateData.position || '',
-      location: candidateData.location || '',
-      education: candidateData.education || '',
-      skills: candidateData.skills || '',
-      sector: candidateData.sector || '',
-      level: candidateData.level || '',
-      dailyRate: candidateData.dailyRate || 0,
-      cvUrl: candidateData.cvUrl || ''
+      name: String(candidateData.name || ''),
+      email: String(candidateData.email || ''),
+      phone: String(candidateData.phone || ''),
+      experience: String(candidateData.experience || ''),
+      position: String(candidateData.position || ''),
+      location: String(candidateData.location || ''),
+      education: String(candidateData.education || ''),
+      skills: String(candidateData.skills || ''),
+      sector: String(candidateData.sector || ''),
+      level: String(candidateData.level || ''),
+      dailyRate: Number(candidateData.dailyRate || 0),
+      cvUrl: String(candidateData.cvUrl || '')
     };
 
     const { nom, prenom } = extractNames(safeData.name);
@@ -134,7 +143,7 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
       safeData.experience,
       safeData.location,
       safeData.education,
-      safeData.skills, // On garde la chaîne originale, pas de split ici
+      safeData.skills,
       safeData.sector,
       safeData.level,
       "Nouveau",

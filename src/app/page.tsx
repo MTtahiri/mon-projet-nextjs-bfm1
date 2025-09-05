@@ -1,186 +1,69 @@
-'use client';
-
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { safeSplit } from '@/utils/stringUtils';
 
-interface Consultant {
-  id: number;
-  name: string;
-  experience: string;
-  competences: string[];
-  secteurs: string[];
-  email?: string;
-  phone?: string;
-}
-
-export default function Home() {
-  const [consultants, setConsultants] = useState<Consultant[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulation - À remplacer par un appel API réel vers Google Sheets
-    const fetchConsultants = async () => {
-      try {
-        const mockConsultants: Consultant[] = [
-          {
-            id: 1,
-            name: "Sarah M.",
-            experience: "8 ans",
-            competences: ["Recrutement IT", "Management", "Formation RH"],
-            secteurs: ["FinTech", "Consulting", "Tech"],
-            email: "contact@rh-prospects.fr",
-            phone: "+33619257588"
-          },
-          {
-            id: 2,
-            name: "Pierre D.",
-            experience: "12 ans",
-            competences: ["Digital", "Change Management", "Innovation"],
-            secteurs: ["Banking", "Insurance", "Retail"],
-            email: "contact@rh-prospects.fr",
-            phone: "+33619257588"
-          },
-          {
-            id: 3,
-            name: "Fatima K.",
-            experience: "6 ans",
-            competences: ["SEO/SEA", "Social Media", "Analytics"],
-            secteurs: ["E-commerce", "Media", "Startup"],
-            email: "contact@rh-prospects.fr",
-            phone: "+33619257588"
-          }
-        ];
-        setConsultants(mockConsultants);
-      } catch (error) {
-        console.error('Erreur chargement consultants:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchConsultants();
-  }, []);
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  const handleContact = (consultantName: string) => {
-    const subject = `Prise de rendez-vous - Consultant ${consultantName}`;
-    const body = `Bonjour S.M. Consulting,\n\nJe souhaite prendre rendez-vous concernant le consultant ${consultantName}.\n\nCordialement,`;
-
-    window.open(
-      `mailto:contact@rh-prospects.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
-      '_blank'
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-teal-600 flex items-center justify-center">
-        <div className="text-white text-xl">Chargement...</div>
-      </div>
-    );
-  }
-
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-teal-600">
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center text-white mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">🌟 S.M. Consulting</h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-4xl mx-auto">
-            Mettons en relation les talents internationaux d&apos;exception avec les entreprises en recherche d&apos;expertise pointue.
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      <div className="flex-grow flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">
+            Bienvenue sur la Plateforme SMConsulting
+          </h1>
+          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+            Plateforme de recrutement de consultants experts - Rejoignez notre réseau d'élite
           </p>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-6 text-center">
-              <div className="flex flex-col items-center">
-                <div className="text-3xl mb-2">✨</div>
-                <p className="text-lg">Consultants rigoureusement sélectionnés et certifiés</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl mb-2">🌍</div>
-                <p className="text-lg">Expertise locale, impact international</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl mb-2">⚡</div>
-                <p className="text-lg">Un matching accéléré pour des missions lancées rapidement</p>
-              </div>
+          
+          <div className="space-y-4">
+            <Link
+              href="/join-cv"
+              className="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-md"
+            >
+              🚀 Déposer mon CV
+            </Link>
+            
+            <div className="text-sm text-gray-500">
+              Processus de recrutement simplifié et sécurisé
+            </div>
+          </div>
+
+          <div className="mt-16 grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="text-2xl mb-4">📋</div>
+              <h3 className="font-semibold mb-2">CV Dématérialisé</h3>
+              <p className="text-gray-600">Upload sécurisé de votre CV</p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="text-2xl mb-4">⚡</div>
+              <h3 className="font-semibold mb-2">Traitement Rapide</h3>
+              <p className="text-gray-600">Réponse sous 48h</p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="text-2xl mb-4">🔒</div>
+              <h3 className="font-semibold mb-2">Données Sécurisées</h3>
+              <p className="text-gray-600">Vos données sont protégées</p>
             </div>
           </div>
         </div>
-
-        {/* Consultants Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {consultants.map((consultant) => {
-            // sécurisation : si competences est une string à splitter, sinon utiliser safeSplit sinon on garde array
-            const competencesArray = Array.isArray(consultant.competences)
-              ? consultant.competences // déjà tableau
-              : safeSplit(consultant.competences as unknown as string);
-
-            return (
-              <div key={consultant.id} className="bg-white rounded-2xl shadow-2xl overflow-hidden transform hover:scale-105 transition-all duration-300">
-                <div className="p-6">
-                  <div className="text-center mb-6">
-                    <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg">
-                      {getInitials(consultant.name)}
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{consultant.name}</h2>
-                    <h3 className="text-lg text-purple-600 font-semibold">Consultant Expert</h3>
-                    <p className="text-gray-500 mt-1">{consultant.experience} • Disponible</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">🎯 Expertises :</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {competencesArray.slice(0, 4).map((comp, index) => (
-                          <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                            {comp}
-                          </span>
-                        ))}
-                        {competencesArray.length > 4 && (
-                          <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-                            +{competencesArray.length - 4} autres
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-1">🏢 Secteurs :</h4>
-                      <p className="text-sm text-gray-600">{consultant.secteurs.join(' • ')}</p>
-                    </div>
-
-                    <div className="space-y-2 pt-4 border-t">
-                      <button
-                        onClick={() => handleContact(consultant.name)}
-                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
-                      >
-                        📞 Contacter S.M. Consulting
-                      </button>
-
-                      <button className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">
-                        📄 CV Anonyme
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="text-center">
-          <Link
-            href="/join"
-            className="bg-white text-purple-600 px-12 py-4 rounded-2xl font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 inline-block"
-          >
-            💼 Rejoindre notre réseau de consultants
-          </Link>
-        </div>
       </div>
+
+      {/* FOOTER POUR LA PAGE D'ACCUEIL */}
+      <footer className="bg-gray-800 text-white py-8 mt-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center">
+            <p className="text-gray-300 text-sm">
+              © 2024 S.M. Consulting - Tous droits réservés. | 
+              📞 +33 6 19 25 75 88 | 
+              ✉️ contact@rh-prospects.fr
+            </p>
+            <p className="text-gray-400 text-xs mt-2">
+              <a href="#" className="hover:text-blue-300 underline">Mentions légales</a> | 
+              <a href="#" className="hover:text-blue-300 underline ml-2">Politique de confidentialité</a> | 
+              <a href="#" className="hover:text-blue-300 underline ml-2">RGPD</a>
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

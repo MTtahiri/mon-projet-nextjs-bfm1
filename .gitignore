@@ -53,3 +53,6 @@ node_modules
 google-service-account.json
 test.pdf
 test.txt
+.env.local
+.next/
+node_modules/

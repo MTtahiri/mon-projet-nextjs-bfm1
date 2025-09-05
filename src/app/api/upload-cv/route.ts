@@ -2,23 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { addCandidateToSheet } from '@/lib/google-sheets';
 
+// SOLUTION DÉFINITIVE : Token en dur temporairement
+const BLOB_TOKEN = "vercel_blob_rw_sfWrrZEyAKYGh8XB_mKJqDbQRD5PjMhE5X2wMZ3ET1Yss5t";
+
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔧 Debug: API upload-cv appelée');
+    
     const formData = await request.formData();
 
     const file = formData.get('cv') as File | null;
-    const name = (formData.get('name') as string) || '';
-    const email = (formData.get('email') as string) || '';
-    const phone = (formData.get('phone') as string) || '';
-    const experience = (formData.get('experience') as string) || '';
-    const position = (formData.get('position') as string) || '';
-    const location = (formData.get('location') as string) || '';
-    const education = (formData.get('education') as string) || '';
-    const skillsRaw = (formData.get('skills') as string) || '';
-    const sector = (formData.get('sector') as string) || '';
-    const level = (formData.get('level') as string) || '';
-    const dailyRateStr = (formData.get('dailyRate') as string) || '';
+    const name = formData.get('name') as string || '';
+    const email = formData.get('email') as string || '';
+    const phone = formData.get('phone') as string || '';
+    const experience = formData.get('experience') as string || '';
+    const position = formData.get('position') as string || '';
+    const location = formData.get('location') as string || '';
+    const education = formData.get('education') as string || '';
+    const skills = formData.get('skills') as string || '';
+    const sector = formData.get('sector') as string || '';
+    const level = formData.get('level') as string || '';
+    const dailyRateStr = formData.get('dailyRate') as string || '';
 
+    console.log('📋 Données reçues:', { name, email, dailyRateStr });
+
+    // Validation
     if (!file || !name || !email || !dailyRateStr) {
       return NextResponse.json(
         { error: 'Fichier, nom, email et TJM sont requis' }, 
@@ -50,18 +58,17 @@ export async function POST(request: NextRequest) {
 
     const fileName = `cv-${name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.pdf`;
 
+    // UPLOAD AVEC TOKEN EN DUR (solution temporaire)
+    console.log('📤 Upload vers Vercel Blob...');
     const blob = await put(fileName, file, {
       access: 'public',
       contentType: 'application/pdf',
+      token: BLOB_TOKEN, // ← TOKEN EN DUR
     });
 
-    // Nettoyage des compétences
-    const skills = skillsRaw
-      .split(',')
-      .map(skill => skill.trim())
-      .filter(skill => skill.length > 0)
-      .join(', ');
+    console.log('✅ Fichier uploadé:', blob.url);
 
+    // Préparation des données pour Google Sheets
     const candidateData = {
       name,
       email,
@@ -77,6 +84,8 @@ export async function POST(request: NextRequest) {
       cvUrl: blob.url,
     };
 
+    // Enregistrement dans Google Sheets
+    console.log('📊 Enregistrement dans Google Sheets...');
     const success = await addCandidateToSheet(candidateData);
 
     if (!success) {
@@ -86,22 +95,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const candidateId = `CAND-${Date.now().toString().slice(-6)}`;
+    console.log('🎉 Candidat enregistré avec succès!');
 
     return NextResponse.json({
       success: true,
       message: 'CV et données enregistrés avec succès!',
-      candidateId,
+      candidateId: `CAND-${Date.now().toString().slice(-6)}`,
       cvUrl: blob.url,
       dailyRate,
     });
 
   } catch (error: unknown) {
-    console.error('Erreur lors du traitement:', error);
+    console.error('❌ Erreur critique:', error);
     
     const errorMessage = error instanceof Error 
       ? error.message 
-      : 'Erreur lors du traitement du formulaire';
+      : 'Erreur inconnue lors du traitement';
     
     return NextResponse.json(
       { error: errorMessage }, 
@@ -115,4 +124,3 @@ export const config = {
     bodyParser: false,
   },
 };
-// Force redeploy for environment variables

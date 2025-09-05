@@ -33,4 +33,4 @@ export async function addCandidateToSheet(candidateData: CandidateData): Promise
     }
     return false;
   }
-}
+}// Google Auth fix

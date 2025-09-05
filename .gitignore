@@ -48,3 +48,8 @@ next-env.d.ts
 .env.production.local
 .next
 node_modules
+
+
+google-service-account.json
+test.pdf
+test.txt

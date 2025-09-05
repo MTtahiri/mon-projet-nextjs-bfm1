@@ -48,7 +48,7 @@ export default function RootLayout({
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Protection des données</h3>
                   <p className="text-gray-300 text-sm">
-                    Conformément au RGPD, vous disposez d'un droit d'accès,
+                    Conformément au RGPD, vous disposez d&apos;un droit d&apos;accès,
                     de rectification et de suppression de vos données.
                   </p>
                 </div>

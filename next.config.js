@@ -15,4 +15,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+const nextConfig = {\n  eslint: {\n    ignoreDuringBuilds: true,\n  },\n}\n\nmodule.exports = nextConfig

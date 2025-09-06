@@ -1,4 +1,4 @@
-// src/app/api/upload-cv/route.ts - Avec timeout
+// src/app/api/upload-cv/route.ts - Version finale avec le bon range
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import path from 'path';
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // === CODE GOOGLE SHEETS AVEC TIMEOUT ===
+    // === CODE GOOGLE SHEETS ===
     console.log('Initialisation Google Sheets...');
     const auth = new google.auth.GoogleAuth({
       keyFile: path.join(process.cwd(), 'google-service-account.json'),
@@ -38,30 +38,32 @@ export async function POST(request: NextRequest) {
       throw new Error('GOOGLE_SHEET_ID environment variable is missing');
     }
 
-    // Ajoutez un timeout
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Google Sheets timeout after 10s')), 10000)
-    );
-
+    // Utilisez le bon range basé sur votre structure de Sheet
     console.log('Ajout des données à Google Sheets...');
-    const sheetsPromise = sheets.spreadsheets.values.append({
+    const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'A:E',
+      range: 'Master_KPI_Candidats!A:E', // Utilisez le nom de votre feuille
       valueInputOption: 'USER_ENTERED',
       resource: {
-        values: [[name, email, dailyRate, cvFile.name, new Date().toISOString()]],
+        values: [[
+          `Candidat-${Date.now()}`, // Candidat ID
+          '', // Url (vide pour l'instant)
+          name, // Nom
+          '', // Prenom (vide si vous n'avez pas ce champ)
+          email, // Courriel
+          dailyRate, // TJM
+          cvFile.name, // Fichier CV
+          new Date().toISOString() // Date
+        ]],
       },
     });
 
-    // Race between sheets request and timeout
-    const response = await Promise.race([sheetsPromise, timeoutPromise]) as any;
-    
     console.log('Données ajoutées avec succès:', response.data);
 
     return NextResponse.json(
       { 
         success: true, 
-        message: 'CV et données enregistrés avec succès',
+        message: 'CV et données enregistrés avec succès dans Google Sheets',
         data: { name, email, dailyRate, filename: cvFile.name }
       },
       { status: 200 }

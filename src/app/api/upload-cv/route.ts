@@ -1,19 +1,43 @@
-// src/app/api/upload-cv/route.ts - Version corrigée avec votre structure exacte
+// src/app/api/upload-cv/route.ts - Avec formidable
 import { NextRequest, NextResponse } from 'next/server';
+import formidable from 'formidable';
+import fs from 'fs';
 import { google } from 'googleapis';
 import path from 'path';
 
+export const config = {
+  api: {
+    bodyParser: false, // Désactive le bodyParser par défaut
+  },
+};
+
+async function parseForm(req: NextRequest): Promise<{ fields: formidable.Fields; files: formidable.Files }> {
+  const form = formidable({
+    maxFiles: 1,
+    maxFileSize: 10 * 1024 * 1024, // 10MB
+  });
+
+  return new Promise((resolve, reject) => {
+    form.parse(req as any, (err, fields, files) => {
+      if (err) reject(err);
+      resolve({ fields, files });
+    });
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
-    console.log('Début de la requête upload-cv');
+    console.log('=== DÉBUT REQUÊTE UPLOAD-CV ===');
     
-    const formData = await request.formData();
-    const name = formData.get('name');
-    const email = formData.get('email');
-    const dailyRate = formData.get('dailyRate');
-    const cvFile = formData.get('cv') as File;
+    // Parse le form-data avec formidable
+    const { fields, files } = await parseForm(request);
+    
+    const name = Array.isArray(fields.name) ? fields.name[0] : fields.name;
+    const email = Array.isArray(fields.email) ? fields.email[0] : fields.email;
+    const dailyRate = Array.isArray(fields.dailyRate) ? fields.dailyRate[0] : fields.dailyRate;
+    const cvFile = files.cv?.[0];
 
-    console.log('Données reçues:', { name, email, dailyRate, filename: cvFile?.name });
+    console.log('Données parsées:', { name, email, dailyRate, file: cvFile?.originalFilename });
 
     if (!name || !email || !dailyRate || !cvFile) {
       return NextResponse.json(
@@ -23,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // === CODE GOOGLE SHEETS ===
-    console.log('Initialisation Google Sheets...');
+    console.log('Connexion à Google Sheets...');
     const auth = new google.auth.GoogleAuth({
       keyFile: path.join(process.cwd(), 'google-service-account.json'),
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -32,17 +56,15 @@ export async function POST(request: NextRequest) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    console.log('Spreadsheet ID:', spreadsheetId);
-
     if (!spreadsheetId) {
       throw new Error('GOOGLE_SHEET_ID environment variable is missing');
     }
 
-    // Structure exacte de votre Google Sheet
-    console.log('Ajout des données à Google Sheets...');
+    // Ajout des données à Google Sheets
+    console.log('Ajout à Google Sheets...');
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Master_KPI_Candidats!A:R', // A:R pour 18 colonnes
+      range: 'Master_KPI_Candidats!A:R',
       valueInputOption: 'USER_ENTERED',
       resource: {
         values: [[
@@ -68,24 +90,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('Données ajoutées avec succès:', response.data);
+    console.log('✅ Données enregistrées dans Google Sheets');
 
     return NextResponse.json(
       { 
         success: true, 
-        message: 'CV et données enregistrés avec succès dans Google Sheets',
-        data: { name, email, dailyRate, filename: cvFile.name }
+        message: 'CV et données enregistrés avec succès',
+        data: { name, email, dailyRate, filename: cvFile.originalFilename }
       },
       { status: 200 }
     );
 
   } catch (error: any) {
-    console.error('ERREUR COMPLÈTE:', error);
-    console.error('Code erreur:', error.code);
-    console.error('Message erreur:', error.message);
-    
+    console.error('❌ ERREUR:', error);
     return NextResponse.json(
-      { error: 'Erreur Google Sheets: ' + error.message },
+      { error: 'Erreur: ' + error.message },
       { status: 500 }
     );
   }

@@ -1,9 +1,6 @@
-@'
-// src/app/api/upload-cv/route.ts - Version corrigée
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import path from 'path';
-import fs from 'fs/promises';
 
 export const config = {
   api: {
@@ -103,4 +100,3 @@ export async function GET() {
     { status: 200 }
   );
 }
-'@ | Set-Content -Path "src/app/api/upload-cv/route.ts" -Encoding utf8

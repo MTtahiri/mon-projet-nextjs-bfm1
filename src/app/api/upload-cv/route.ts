@@ -1,4 +1,4 @@
-// src/app/api/upload-cv/route.ts - Version finale avec le bon range
+// src/app/api/upload-cv/route.ts - Version corrigée avec votre structure exacte
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import path from 'path';
@@ -38,22 +38,32 @@ export async function POST(request: NextRequest) {
       throw new Error('GOOGLE_SHEET_ID environment variable is missing');
     }
 
-    // Utilisez le bon range basé sur votre structure de Sheet
+    // Structure exacte de votre Google Sheet
     console.log('Ajout des données à Google Sheets...');
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Master_KPI_Candidats!A:E', // Utilisez le nom de votre feuille
+      range: 'Master_KPI_Candidats!A:R', // A:R pour 18 colonnes
       valueInputOption: 'USER_ENTERED',
       resource: {
         values: [[
-          `Candidat-${Date.now()}`, // Candidat ID
-          '', // Url (vide pour l'instant)
-          name, // Nom
-          '', // Prenom (vide si vous n'avez pas ce champ)
-          email, // Courriel
-          dailyRate, // TJM
-          cvFile.name, // Fichier CV
-          new Date().toISOString() // Date
+          `Candidat-${Date.now()}`,      // A: Candidat
+          '',                           // B: Url
+          name,                         // C: Nom
+          '',                           // D: Prenom
+          email,                        // E: Courriel
+          '',                           // F: Telephone
+          '',                           // G: Poste
+          '',                           // H: Experience
+          '',                           // I: Localisation
+          '',                           // J: Formation
+          '',                           // K: Competences
+          '',                           // L: Secteur
+          '',                           // M: Niveau
+          'Nouveau',                    // N: Statut
+          new Date().toISOString(),     // O: Date_Ajout
+          '',                           // P: Hash_Anti_Doublon
+          '',                           // Q: Detection_Doublons
+          dailyRate                     // R: TJM_Souhaite
         ]],
       },
     });

@@ -1,4 +1,4 @@
-// src/app/api/upload-cv/route.ts - Version avec logging
+// src/app/api/upload-cv/route.ts - Avec timeout
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import path from 'path';
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // === CODE GOOGLE SHEETS ===
+    // === CODE GOOGLE SHEETS AVEC TIMEOUT ===
     console.log('Initialisation Google Sheets...');
     const auth = new google.auth.GoogleAuth({
       keyFile: path.join(process.cwd(), 'google-service-account.json'),
@@ -31,15 +31,20 @@ export async function POST(request: NextRequest) {
 
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-    
+
     console.log('Spreadsheet ID:', spreadsheetId);
 
     if (!spreadsheetId) {
       throw new Error('GOOGLE_SHEET_ID environment variable is missing');
     }
 
+    // Ajoutez un timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Google Sheets timeout after 10s')), 10000)
+    );
+
     console.log('Ajout des données à Google Sheets...');
-    const response = await sheets.spreadsheets.values.append({
+    const sheetsPromise = sheets.spreadsheets.values.append({
       spreadsheetId,
       range: 'A:E',
       valueInputOption: 'USER_ENTERED',
@@ -48,6 +53,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Race between sheets request and timeout
+    const response = await Promise.race([sheetsPromise, timeoutPromise]) as any;
+    
     console.log('Données ajoutées avec succès:', response.data);
 
     return NextResponse.json(
@@ -65,8 +73,15 @@ export async function POST(request: NextRequest) {
     console.error('Message erreur:', error.message);
     
     return NextResponse.json(
-      { error: 'Erreur: ' + error.message },
+      { error: 'Erreur Google Sheets: ' + error.message },
       { status: 500 }
     );
   }
+}
+
+export async function GET() {
+  return NextResponse.json(
+    { message: 'Endpoint upload-cv actif', method: 'GET' },
+    { status: 200 }
+  );
 }

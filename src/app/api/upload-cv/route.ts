@@ -1,23 +1,18 @@
 // src/app/api/upload-cv/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import formidable from 'formidable';
-import fs from 'fs';
 import { google } from 'googleapis';
 import path from 'path';
+import fs from 'fs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Create tmp directory if it doesn't exist
-    if (!fs.existsSync('./tmp')) {
-      fs.mkdirSync('./tmp');
-    }
-
     const formData = await request.formData();
     const name = formData.get('name');
     const email = formData.get('email');
     const dailyRate = formData.get('dailyRate');
     const cvFile = formData.get('cv') as File;
 
+    // Validation
     if (!name || !email || !dailyRate || !cvFile) {
       return NextResponse.json(
         { error: 'Fichier, nom, email et TJM sont requis' },
@@ -25,13 +20,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Données reçues:', { name, email, dailyRate, filename: cvFile.name });
-
-    // Save file temporarily
-    const bytes = await cvFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const tempFilePath = `./tmp/${Date.now()}-${cvFile.name}`;
-    fs.writeFileSync(tempFilePath, buffer);
+    console.log('Données reçues:', { 
+      name, 
+      email, 
+      dailyRate, 
+      filename: cvFile.name,
+      size: cvFile.size 
+    });
 
     // === CODE GOOGLE SHEETS ===
     const auth = new google.auth.GoogleAuth({
@@ -42,6 +37,7 @@ export async function POST(request: NextRequest) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
+    // Ajoutez les données à Google Sheets
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: 'A1',
@@ -51,18 +47,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Clean up temporary file
-    if (fs.existsSync(tempFilePath)) {
-      fs.unlinkSync(tempFilePath);
-    }
-
     return NextResponse.json(
-      { success: true, message: 'CV uploadé avec succès' },
+      { 
+        success: true, 
+        message: 'CV uploadé avec succès',
+        data: { name, email, dailyRate, filename: cvFile.name }
+      },
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Erreur:', error);
+  } catch (error: any) {
+    console.error('Erreur détaillée:', error);
     return NextResponse.json(
       { error: 'Erreur lors du traitement: ' + error.message },
       { status: 500 }

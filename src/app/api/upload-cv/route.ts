@@ -1,43 +1,26 @@
-// src/app/api/upload-cv/route.ts - Avec formidable
+// src/app/api/upload-cv/route.ts - Version avec parsing natif
 import { NextRequest, NextResponse } from 'next/server';
-import formidable from 'formidable';
-import fs from 'fs';
 import { google } from 'googleapis';
 import path from 'path';
-
-export const config = {
-  api: {
-    bodyParser: false, // Désactive le bodyParser par défaut
-  },
-};
-
-async function parseForm(req: NextRequest): Promise<{ fields: formidable.Fields; files: formidable.Files }> {
-  const form = formidable({
-    maxFiles: 1,
-    maxFileSize: 10 * 1024 * 1024, // 10MB
-  });
-
-  return new Promise((resolve, reject) => {
-    form.parse(req as any, (err, fields, files) => {
-      if (err) reject(err);
-      resolve({ fields, files });
-    });
-  });
-}
 
 export async function POST(request: NextRequest) {
   try {
     console.log('=== DÉBUT REQUÊTE UPLOAD-CV ===');
     
-    // Parse le form-data avec formidable
-    const { fields, files } = await parseForm(request);
-    
-    const name = Array.isArray(fields.name) ? fields.name[0] : fields.name;
-    const email = Array.isArray(fields.email) ? fields.email[0] : fields.email;
-    const dailyRate = Array.isArray(fields.dailyRate) ? fields.dailyRate[0] : fields.dailyRate;
-    const cvFile = files.cv?.[0];
+    // Next.js 15+ peut parser form-data nativement
+    const formData = await request.formData();
+    const name = formData.get('name');
+    const email = formData.get('email');
+    const dailyRate = formData.get('dailyRate');
+    const cvFile = formData.get('cv') as File;
 
-    console.log('Données parsées:', { name, email, dailyRate, file: cvFile?.originalFilename });
+    console.log('Données reçues:', { 
+      name, 
+      email, 
+      dailyRate, 
+      hasFile: !!cvFile,
+      filename: cvFile?.name 
+    });
 
     if (!name || !email || !dailyRate || !cvFile) {
       return NextResponse.json(
@@ -96,13 +79,14 @@ export async function POST(request: NextRequest) {
       { 
         success: true, 
         message: 'CV et données enregistrés avec succès',
-        data: { name, email, dailyRate, filename: cvFile.originalFilename }
+        data: { name, email, dailyRate, filename: cvFile.name }
       },
       { status: 200 }
     );
 
   } catch (error: any) {
     console.error('❌ ERREUR:', error);
+    console.error('Stack:', error.stack);
     return NextResponse.json(
       { error: 'Erreur: ' + error.message },
       { status: 500 }
